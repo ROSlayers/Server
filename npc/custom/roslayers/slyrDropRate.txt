@@ -1,0 +1,49 @@
+gm_room,61,46,5	script	Holdr Reward2	757,{
+	
+	query_sql( "SELECT * FROM `slyr_wallets` WHERE `char_id`='"+escape_sql( getcharid(0) )+"'",.@w_id$,.@a_id$,.@c_id$,.@c_name$,.@w_add$,.amount$,.@time$ );
+	query_sql( "SELECT * FROM `slyr_holdrs` WHERE `wallet_address`='"+escape_sql(.@w_add$)+"'",.@h_add$,.@bal$,.@pend$ );
+	if( query_sql( "SELECT `wallet_address` FROM `slyr_wallets` WHERE `char_id` = '"+escape_sql( getcharid(0) )+"'", .@w_add$ ) ){
+	/*Check if character has wallet*/
+		if( query_sql( "SELECT `balnce` FROM `slyr_holdrs` WHERE `wallet_address` = '"+escape_sql( .@w_add$ )+"'", .@bal$ ) ){
+		/*Check if wallet is SLYR token holder*/
+			mes "you have a wallet & holding token";
+			next;
+			/* set $slyrMin,100; */
+			/* Sets the value of Mimimum SLYR holding on mapreg db*/
+			/* set $slyrFreeRate,30; */
+			/* Sets the drop rate of SLYR token for non-holders on mapreg db*/
+			set .@bal, atoi(.@bal$);
+			if (.@bal >= $slyrMin) {
+				getitem 30008,2;
+				mes "you are holding enough";
+				close;
+			}
+			else {
+				next;
+				goto freePlayer;
+			}
+		}
+		else {
+			mes "you are not holding";
+			goto freePlayer;
+			next;
+		}
+	}
+	else {
+		mes "you dont have wallet";
+		goto freePlayer;
+		next;
+	}
+	freePlayer:
+		set @slyrRate, rand(0,100);
+		if (@slyrRate <= $slyrFreeRate) {
+			getitem 30008,1;
+			mes "you're not holding enough";
+			close;
+		}
+		else {
+			mes "unlucky";
+			close;
+		}
+		close;
+}
