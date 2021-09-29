@@ -1,0 +1,81 @@
+s_chambers,112,287,3	script	Wallet Specialist	10084,{
+	
+	query_sql( "SELECT * FROM `slyr_wallets` WHERE `char_id`='"+escape_sql( getcharid(0) )+"'",.@w_id$,.@a_id$,.@c_id$,.@c_name$,.@w_add$,.amount$,.@time$ );	
+	goto checkExist;
+	
+	checkExist:
+		if( query_sql( "SELECT `wallet_address` FROM `slyr_wallets` WHERE `wallet_address` = '"+escape_sql( .@w_add$ )+"'", .@w_add$ ) ){
+			goto boundAddress;
+		}
+		else {
+			goto addMember;
+		}
+	
+	boundAddress:
+		mes "[^FF0000 Wallet Specialist ^000000]";
+		mes "This character is already bound to the wallet address:";
+		mes "^FF0000"+.@w_add$+"";
+		mes "You can't change your wallet address at this time.";
+		close;
+	
+	checkTotal:
+		next;
+		query_sql( "SELECT COUNT(1) FROM `slyr_wallets` WHERE `wallet_address` = '"+escape_sql(.@w_reg$)+"' GROUP BY `wallet_address`",.@amount );
+		if (.@amount >= 3) {
+			goto moreThanThree;
+		}
+		else {
+			query_sql "INSERT INTO `slyr_wallets` VALUES ( '', '" + .@a_id$ + "', '" + getcharid(0) + "', '" + strcharinfo(0) + "', '" + .@w_reg$ + "', '1' , NOW() )";
+			mes "[^FF0000 Wallet Specialist ^000000]";
+			mes "This character is now bound to the wallet address:";
+			mes "^FF0000"+.@w_reg$+"";
+			close;
+		}
+		
+	moreThanThree:
+		mes "[^FF0000 Wallet Specialist ^000000]";
+		mes "That wallet address has already reached the limit of three bound characters per wallet.";
+		close;
+	
+	addMember:
+		mes "[^FF0000 Wallet Specialist ^000000]";
+		mes "";
+		mes "I can help you setup your $SLYR wallet address.";
+		next;
+		mes "[^FF0000 Wallet Specialist ^000000]";
+		mes "";
+		mes "Do you want to add your wallet address now?";
+		mes "^FF0000Important Note:^000000";
+		mes "You can only set this once and can't be changed in the future.";
+		next;
+		goto agreeCantChange;
+				
+	agreeCantChange:
+		switch(select("Yes","No")){
+			case 1://
+				mes "[^FF0000 Wallet Specialist ^000000]";
+				mes "";
+				mes "Please enter your wallet address that starts with ^FF00000x";
+				mes "^FF0000Example:^000000";
+				mes "^FF00000x8c6fe18ea0fd58259084e6ebfe3896bebe3d78e5^000000";
+				next;
+				input .@w_reg$;
+				goto inputConfirm;
+			case 2:
+				mes "[^FF0000 Wallet Specialist ^000000]";
+				mes "";
+				mes "Sure! Have a great day!";
+				close;
+		}
+	
+	inputConfirm:
+		mes "[^FF0000 Wallet Specialist ^000000]";
+		mes "Please confirm your entered wallet address:";
+		mes "^FF0000"+.@w_reg$+"";
+		switch(select("Yes","No")){
+			case 1:
+				goto checkTotal;
+			case 2:
+				goto addMember;
+		}		
+}
